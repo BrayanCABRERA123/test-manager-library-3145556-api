@@ -55,6 +55,7 @@ el mismo error para usuario o clave inválidos (CA-01.2), admin inicial creado u
 | POST | `/api/v1/auth/login` | público | ✅ JWT HS256 de 8 h con `sub` y `role` (ADR-005) |
 | GET | `/api/v1/categories` | autenticado | ✅ Las cinco categorías ordenadas por nombre (§3.3) |
 | POST | `/api/v1/users` | admin | ✅ Crea bibliotecarios (HU-02): 201 sin clave, 409 `USERNAME_TAKEN`, 422 si piden `admin` |
+| GET, POST | `/api/v1/members`, `/api/v1/members/{id}` | admin, librarian | ✅ HU-05: crear (409 `DOCUMENT_TAKEN`), buscar por nombre o documento paginado, detalle con `active_loans` |
 
 ## Tareas y evidencia (artículo XII)
 
