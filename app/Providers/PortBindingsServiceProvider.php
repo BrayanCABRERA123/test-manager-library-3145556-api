@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Adapters\Outbound\Persistence\DbCategoryRepository;
 use App\Adapters\Outbound\Persistence\DbUserRepository;
+use App\Application\Ports\Outbound\CategoryRepository;
 use App\Adapters\Outbound\Security\Argon2PasswordHasher;
 use App\Adapters\Outbound\Security\JwtTokenIssuer;
 use App\Adapters\Outbound\Security\UuidV4Generator;
@@ -18,6 +20,7 @@ final class PortBindingsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(UserRepository::class, DbUserRepository::class);
+        $this->app->singleton(CategoryRepository::class, DbCategoryRepository::class);
         $this->app->singleton(PasswordHasher::class, Argon2PasswordHasher::class);
         $this->app->singleton(IdGenerator::class, UuidV4Generator::class);
         $this->app->singleton(JwtTokenIssuer::class, fn () => new JwtTokenIssuer((string) env('JWT_SECRET')));
