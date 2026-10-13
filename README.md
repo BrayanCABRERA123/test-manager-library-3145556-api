@@ -44,7 +44,7 @@ cd ../test-manager-library-3145556-infra
 docker compose exec api sh -c "composer install --no-interaction --no-scripts && php vendor/bin/phpunit --testsuite Unit --testdox"
 ```
 
-Resultado: **OK (9 tests, 25 assertions)**: normalización del usuario, rol inválido rechazado, login válido con token de 8 h,
+Resultado: **OK (12 tests, 33 assertions)**: normalización del usuario, rol inválido rechazado, login válido con token de 8 h,
 el mismo error para usuario o clave inválidos (CA-01.2), admin inicial creado una sola vez, y 401/403 del token (CA-01.3).
 
 ## Endpoints implementados
@@ -54,6 +54,7 @@ el mismo error para usuario o clave inválidos (CA-01.2), admin inicial creado u
 | GET | `/health` y `/api/v1/health` | público | ✅ `{"status":"ok"}` |
 | POST | `/api/v1/auth/login` | público | ✅ JWT HS256 de 8 h con `sub` y `role` (ADR-005) |
 | GET | `/api/v1/categories` | autenticado | ✅ Las cinco categorías ordenadas por nombre (§3.3) |
+| POST | `/api/v1/users` | admin | ✅ Crea bibliotecarios (HU-02): 201 sin clave, 409 `USERNAME_TAKEN`, 422 si piden `admin` |
 
 ## Tareas y evidencia (artículo XII)
 
@@ -62,7 +63,7 @@ el mismo error para usuario o clave inválidos (CA-01.2), admin inicial creado u
 | T-01 Esqueleto y `GET /health` | ✅ | `curl http://localhost:8000/health` → `{"status":"ok"}`; arranca con un comando |
 | T-02 Migración inicial | ✅ | Seis tablas en el esquema `library`, FK, índices únicos y parciales, `ck_book_available_range`, cinco categorías con sus UUID fijos y **0 columnas con `DEFAULT`** (consultas de `data-model.md` §10) |
 | T-06 `User` (normalización, rol válido) | ✅ parcial | `UserTest`: `" Ana "` queda `ana`; un rol fuera de (`admin`,`librarian`) se rechaza |
-| T-07 Login contra fakes | ✅ parcial | `LoginServiceTest`: token de 8 h; usuario o clave inválidos → el mismo 401 `INVALID_CREDENTIALS` (CA-01.2). `CreateLibrarianService` (HU-02) pendiente |
+| T-07 Login contra fakes | ✅ parcial | `LoginServiceTest`: token de 8 h; usuario o clave inválidos → el mismo 401 `INVALID_CREDENTIALS` (CA-01.2). `CreateLibrarianService` (HU-02) cubierto en `CreateLibrarianServiceTest` |
 | T-14 Hash y token | ✅ | La clave se guarda con Argon2id (`$argon2id$…`); ninguna respuesta incluye `password` ni `password_hash` |
 | T-17 Admin inicial desde el entorno | ✅ | La base arranca vacía, se migra y se puede iniciar sesión como admin |
 | CA-01.3 Token obligatorio | ✅ | Sin token o con token inválido → 401 `UNAUTHENTICATED`; rol insuficiente → 403 `FORBIDDEN_ROLE`; `/health` y el login siguen públicos (`AuthenticateTokenTest`) |

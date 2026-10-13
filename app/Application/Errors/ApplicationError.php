@@ -27,6 +27,18 @@ class ApplicationError extends \RuntimeException
         return new self('UNAUTHENTICATED', 401, 'Falta el token o no es válido.');
     }
 
+    public static function usernameTaken(): self
+    {
+        return new self('USERNAME_TAKEN', 409, 'Ese nombre de usuario ya existe.');
+    }
+
+    public static function roleNotAllowed(): self
+    {
+        return new self('VALIDATION_ERROR', 422, 'Solo se pueden crear usuarios con el rol librarian.', [
+            ['field' => 'role', 'issue' => 'solo se admite librarian'],
+        ]);
+    }
+
     public static function forbiddenRole(): self
     {
         return new self('FORBIDDEN_ROLE', 403, 'Tu rol no permite esta operación.');
