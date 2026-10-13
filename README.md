@@ -35,6 +35,18 @@ docker compose up -d --build
 Al arrancar, el contenedor ejecuta las migraciones y crea el admin inicial desde `ADMIN_USERNAME` / `ADMIN_PASSWORD` (D-10).
 No necesita PHP ni Composer instalados en el equipo.
 
+## Pruebas
+
+Pruebas unitarias de dominio y de aplicación con *fakes* de los puertos (sin base de datos), con PHPUnit (D-12):
+
+```bash
+cd ../test-manager-library-3145556-infra
+docker compose exec api sh -c "composer install --no-interaction --no-scripts && php vendor/bin/phpunit --testsuite Unit --testdox"
+```
+
+Resultado: **OK (5 tests, 16 assertions)**: normalización del usuario, rol inválido rechazado, login válido con token de 8 h,
+el mismo error para usuario o clave inválidos (CA-01.2) y admin inicial creado una sola vez.
+
 ## Endpoints implementados
 
 | Método | Ruta | Rol | Estado |
@@ -48,12 +60,12 @@ No necesita PHP ni Composer instalados en el equipo.
 |---|---|---|
 | T-01 Esqueleto y `GET /health` | ✅ | `curl http://localhost:8000/health` → `{"status":"ok"}`; arranca con un comando |
 | T-02 Migración inicial | ✅ | Seis tablas en el esquema `library`, FK, índices únicos y parciales, `ck_book_available_range`, cinco categorías con sus UUID fijos y **0 columnas con `DEFAULT`** (consultas de `data-model.md` §10) |
-| T-06 `User` (normalización, rol válido) | ✅ parcial | `" Admin "` inicia sesión como `admin`; rol fuera de (`admin`,`librarian`) se rechaza en el dominio |
-| T-07 Login | ✅ | Credenciales válidas → 200 con token; usuario o clave inválidos → el mismo 401 `INVALID_CREDENTIALS` (CA-01.2) |
+| T-06 `User` (normalización, rol válido) | ✅ parcial | `UserTest`: `" Ana "` queda `ana`; un rol fuera de (`admin`,`librarian`) se rechaza |
+| T-07 Login contra fakes | ✅ parcial | `LoginServiceTest`: token de 8 h; usuario o clave inválidos → el mismo 401 `INVALID_CREDENTIALS` (CA-01.2). `CreateLibrarianService` (HU-02) pendiente |
 | T-14 Hash y token | ✅ | La clave se guarda con Argon2id (`$argon2id$…`); ninguna respuesta incluye `password` ni `password_hash` |
 | T-17 Admin inicial desde el entorno | ✅ | La base arranca vacía, se migra y se puede iniciar sesión como admin |
 | RNF-4 Cuerpo de error único | ✅ | 401, 404, 422 y 500 responden `{ code, message, details }`, sin trazas |
-| T-03 a T-05, T-08 a T-13, T-15, T-16, T-18, T-19 | ⏳ pendiente | No iniciadas por tiempo: libros, socios, préstamos, devoluciones, vencidos, reporte, portadas y pruebas automatizadas |
+| T-03 a T-05, T-08 a T-13, T-15, T-16, T-18, T-19 | ⏳ pendiente | No iniciadas por tiempo: libros, socios, préstamos, devoluciones, vencidos, reporte, portadas, pruebas de integración, contrato, concurrencia y arquitectura |
 
 ## Decisiones registradas en docs
 
