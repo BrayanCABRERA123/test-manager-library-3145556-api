@@ -21,4 +21,14 @@ class ApplicationError extends \RuntimeException
     {
         return new self('INVALID_CREDENTIALS', 401, 'Usuario o contraseña incorrectos.');
     }
+
+    public static function unauthenticated(): self
+    {
+        return new self('UNAUTHENTICATED', 401, 'Falta el token o no es válido.');
+    }
+
+    public static function forbiddenRole(): self
+    {
+        return new self('FORBIDDEN_ROLE', 403, 'Tu rol no permite esta operación.');
+    }
 }

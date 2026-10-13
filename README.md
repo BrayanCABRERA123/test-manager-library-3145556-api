@@ -12,8 +12,8 @@ Backend de *Manager Library* en **PHP 8.4 + Laravel 13**, con arquitectura hexag
 app/
 ├── Domain/                     # User (normalización de nombre, rol válido)
 ├── Application/
-│   ├── Ports/Outbound/         # UserRepository, PasswordHasher, TokenIssuer, IdGenerator
-│   ├── Services/               # LoginService, BootstrapAdminService
+│   ├── Ports/Outbound/         # UserRepository, CategoryRepository, PasswordHasher, TokenIssuer, IdGenerator
+│   ├── Services/               # LoginService, BootstrapAdminService, ListCategoriesService
 │   └── Errors/                 # ApplicationError (códigos del contrato)
 ├── Adapters/
 │   ├── Inbound/Http/           # controladores y cuerpo de error único
@@ -44,8 +44,8 @@ cd ../test-manager-library-3145556-infra
 docker compose exec api sh -c "composer install --no-interaction --no-scripts && php vendor/bin/phpunit --testsuite Unit --testdox"
 ```
 
-Resultado: **OK (5 tests, 16 assertions)**: normalización del usuario, rol inválido rechazado, login válido con token de 8 h,
-el mismo error para usuario o clave inválidos (CA-01.2) y admin inicial creado una sola vez.
+Resultado: **OK (9 tests, 25 assertions)**: normalización del usuario, rol inválido rechazado, login válido con token de 8 h,
+el mismo error para usuario o clave inválidos (CA-01.2), admin inicial creado una sola vez, y 401/403 del token (CA-01.3).
 
 ## Endpoints implementados
 
@@ -53,6 +53,7 @@ el mismo error para usuario o clave inválidos (CA-01.2) y admin inicial creado 
 |---|---|---|---|
 | GET | `/health` y `/api/v1/health` | público | ✅ `{"status":"ok"}` |
 | POST | `/api/v1/auth/login` | público | ✅ JWT HS256 de 8 h con `sub` y `role` (ADR-005) |
+| GET | `/api/v1/categories` | autenticado | ✅ Las cinco categorías ordenadas por nombre (§3.3) |
 
 ## Tareas y evidencia (artículo XII)
 
@@ -64,6 +65,7 @@ el mismo error para usuario o clave inválidos (CA-01.2) y admin inicial creado 
 | T-07 Login contra fakes | ✅ parcial | `LoginServiceTest`: token de 8 h; usuario o clave inválidos → el mismo 401 `INVALID_CREDENTIALS` (CA-01.2). `CreateLibrarianService` (HU-02) pendiente |
 | T-14 Hash y token | ✅ | La clave se guarda con Argon2id (`$argon2id$…`); ninguna respuesta incluye `password` ni `password_hash` |
 | T-17 Admin inicial desde el entorno | ✅ | La base arranca vacía, se migra y se puede iniciar sesión como admin |
+| CA-01.3 Token obligatorio | ✅ | Sin token o con token inválido → 401 `UNAUTHENTICATED`; rol insuficiente → 403 `FORBIDDEN_ROLE`; `/health` y el login siguen públicos (`AuthenticateTokenTest`) |
 | RNF-4 Cuerpo de error único | ✅ | 401, 404, 422 y 500 responden `{ code, message, details }`, sin trazas |
 | T-03 a T-05, T-08 a T-13, T-15, T-16, T-18, T-19 | ⏳ pendiente | No iniciadas por tiempo: libros, socios, préstamos, devoluciones, vencidos, reporte, portadas, pruebas de integración, contrato, concurrencia y arquitectura |
 
