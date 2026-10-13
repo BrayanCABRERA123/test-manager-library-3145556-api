@@ -1,6 +1,7 @@
 <?php
 
 use App\Adapters\Inbound\Http\Controllers\HealthController;
+use App\Adapters\Inbound\Http\ErrorResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,4 +23,5 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => true);
+        $exceptions->render(fn (Throwable $e) => ErrorResponse::from($e));
     })->create();
